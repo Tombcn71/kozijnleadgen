@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "setup:db": "tsx scripts/setup-db.ts",
+    "setup:db": "tsx bin/setup-db.ts",
     "setup": "npm run setup:db"
   },
   "dependencies": {
