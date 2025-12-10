@@ -6,11 +6,17 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { config } from 'dotenv';
+import { neon } from '@neondatabase/serverless';
 
 // Load .env.local
 config({ path: join(process.cwd(), '.env.local') });
 
-import { sql } from '../lib/db';
+if (!process.env.DATABASE_URL) {
+  console.error('❌ DATABASE_URL is not set in .env.local');
+  process.exit(1);
+}
+
+const sql = neon(process.env.DATABASE_URL);
 
 async function setupDatabase() {
   try {
@@ -22,19 +28,28 @@ async function setupDatabase() {
 
     console.log('📝 Executing migration...');
     
-    // Execute the entire migration as one query
-    // Neon serverless supports multi-statement queries
-    try {
-      await sql(migrationSQL);
-      console.log('✅ Migration executed successfully');
-    } catch (error: any) {
-      // Check if it's just "already exists" errors (tables might already exist)
-      if (error.message?.includes('already exists')) {
-        console.log('⚠️  Some tables already exist (this is OK)');
-      } else {
-        throw error;
+    // Split SQL by semicolon and execute each statement
+    const statements = migrationSQL
+      .split(';')
+      .map(s => s.trim())
+      .filter(s => s.length > 0 && !s.startsWith('--'));
+
+    for (const statement of statements) {
+      if (statement.trim()) {
+        try {
+          // Use template literal syntax for Neon
+          await sql.unsafe(statement);
+        } catch (error: any) {
+          // Ignore "already exists" errors
+          if (!error.message?.includes('already exists')) {
+            console.error(`Error executing statement: ${statement.substring(0, 50)}...`);
+            throw error;
+          }
+        }
       }
     }
+    
+    console.log('✅ Migration executed successfully');
 
     console.log('✅ Database setup complete!\n');
     
