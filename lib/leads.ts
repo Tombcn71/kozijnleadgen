@@ -17,7 +17,7 @@ export interface CreateLeadInput {
 /**
  * Create a new lead with scoring
  */
-export async function createLead(input: CreateLeadInput) {
+export async function createLead(input: CreateLeadInput): Promise<Lead & { reasons: string[]; estimatedOrderValue: number }> {
   const scoreResult = calculateLeadScore(input.factors);
 
   // Insert lead
