@@ -148,6 +148,6 @@ export async function saveLeadAnalysis(
     RETURNING *
   `;
 
-  return result[0] as LeadAnalysis;
+  return (result as any)[0] as LeadAnalysis;
 }
 
