@@ -1,36 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Kozijn Lead Generator
 
-## Getting Started
+Lead generation systeem voor kozijnvervanging gebouwd met Next.js 16, Neon Database, en Nederlandse data-APIs.
 
-First, run the development server:
+## Features
+
+- 🏠 **BAG API Integratie** - Haalt adressen op per postcode
+- ⚡ **EPA Register** - Analyseert energielabels voor isolatie data
+- 📊 **Multi-factor Lead Scoring** - Berekent lead kwaliteit op basis van:
+  - Bouwjaar
+  - Energielabel
+  - Enkel/dubbel glas
+  - Renovatie geschiedenis
+  - WOZ waarde
+- 🎯 **Dashboard** - Overzicht van leads gesorteerd op score en waarde
+
+## Tech Stack
+
+- **Next.js 16** - React framework met App Router
+- **Neon Database** - Serverless PostgreSQL (geen Prisma)
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Styling
+
+## Setup
+
+1. **Clone en installeer dependencies:**
+
+```bash
+npm install
+```
+
+2. **Database setup:**
+
+Maak een Neon database aan op [neon.tech](https://neon.tech) en voer de migrations uit:
+
+```bash
+# Connect met je Neon database en voer uit:
+psql $DATABASE_URL -f migrations/001_initial.sql
+```
+
+3. **Environment variables:**
+
+Kopieer `.env.example` naar `.env.local` en vul in:
+
+```bash
+cp .env.example .env.local
+```
+
+Vul `DATABASE_URL` in met je Neon connection string.
+
+4. **Run development server:**
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## API Endpoints
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### `POST /api/leads`
+Genereer leads voor een postcode
 
-## Learn More
+```json
+{
+  "postalCode": "3581XT"
+}
+```
 
-To learn more about Next.js, take a look at the following resources:
+### `GET /api/leads?postalCode=3581XT`
+Haal leads op voor een postcode
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### `GET /api/analysis/bag?postalCode=3581XT`
+Haal BAG data op
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### `GET /api/analysis/epa?address=...&postalCode=...`
+Haal EPA energielabel op
 
-## Deploy on Vercel
+## Database Schema
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `leads` - Hoofd tabel voor leads
+- `lead_factors` - Factoren die bijdragen aan de score
+- `lead_analysis` - Raw API responses en analyses
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Toekomstige Features
+
+- [ ] Google Street View AI analyse
+- [ ] Warmtescan data integratie
+- [ ] Route planning voor verkopers
+- [ ] Contactgegevens enrichment
+- [ ] Automatische follow-ups
+
+## Data Bronnen
+
+- **BAG API**: https://api.bag.kadaster.nl/
+- **EPA Register**: Per gemeente verschillend
+- **Google Street View**: Voor kozijn detectie (toekomstig)
+
+## License
+
+MIT
