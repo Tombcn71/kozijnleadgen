@@ -37,7 +37,7 @@ export async function createLead(input: CreateLeadInput): Promise<Lead & { reaso
     )
     RETURNING *
   `;
-  const lead = result[0] as Lead;
+  const lead = (result as any)[0] as Lead;
 
   // Insert factors
   for (const [key, value] of Object.entries(input.factors)) {
