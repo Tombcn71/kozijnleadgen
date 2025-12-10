@@ -21,7 +21,7 @@ export async function createLead(input: CreateLeadInput): Promise<Lead & { reaso
   const scoreResult = calculateLeadScore(input.factors);
 
   // Insert lead
-  const [lead] = await sql<Lead>`
+  const result = await sql`
     INSERT INTO leads (
       address, postal_code, city, house_number, street,
       score, estimated_order_value
@@ -37,6 +37,7 @@ export async function createLead(input: CreateLeadInput): Promise<Lead & { reaso
     )
     RETURNING *
   `;
+  const lead = result[0] as Lead;
 
   // Insert factors
   for (const [key, value] of Object.entries(input.factors)) {
@@ -67,26 +68,29 @@ export async function getLeadsByPostalCode(
   postalCode: string,
   limit: number = 50
 ) {
-  const leads = await sql<Lead>`
+  const leadsResult = await sql`
     SELECT * FROM leads
     WHERE postal_code = ${postalCode}
     ORDER BY score DESC
     LIMIT ${limit}
   `;
+  const leads = leadsResult as Lead[];
 
   // Get factors for each lead
   const leadsWithFactors = await Promise.all(
     leads.map(async (lead) => {
-      const factors = await sql<LeadFactor>`
+      const factorsResult = await sql`
         SELECT * FROM lead_factors
         WHERE lead_id = ${lead.id}
       `;
+      const factors = factorsResult as LeadFactor[];
 
-      const analysis = await sql<LeadAnalysis>`
+      const analysisResult = await sql`
         SELECT * FROM lead_analysis
         WHERE lead_id = ${lead.id}
         ORDER BY created_at DESC
       `;
+      const analysis = analysisResult as LeadAnalysis[];
 
       return {
         ...lead,
@@ -111,13 +115,13 @@ export async function getLeadsByPostalCode(
  * Get all leads sorted by score
  */
 export async function getAllLeads(limit: number = 100) {
-  const leads = await sql<Lead>`
+  const result = await sql`
     SELECT * FROM leads
     ORDER BY score DESC, created_at DESC
     LIMIT ${limit}
   `;
 
-  return leads;
+  return result as Lead[];
 }
 
 /**
@@ -130,7 +134,7 @@ export async function saveLeadAnalysis(
   processedData: any,
   confidenceScore?: number
 ) {
-  const [analysis] = await sql<LeadAnalysis>`
+  const result = await sql`
     INSERT INTO lead_analysis (
       lead_id, analysis_type, raw_data, processed_data, confidence_score
     )
@@ -144,6 +148,6 @@ export async function saveLeadAnalysis(
     RETURNING *
   `;
 
-  return analysis;
+  return result[0] as LeadAnalysis;
 }
 
